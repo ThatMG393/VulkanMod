@@ -37,6 +37,7 @@ import static net.vulkanmod.vulkan.Vulkan.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.EXTDebugUtils.*;
 import static org.lwjgl.vulkan.KHRSwapchain.*;
+import static org.lwjgl.vulkan.KHRSurface.*;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class Renderer {
@@ -581,7 +582,16 @@ public class Renderer {
             return;
 
         try(MemoryStack stack = stackPush()) {
+			VkExtent2D transformedExtent = transformToExtent(VkExtent2D.calloc(stack), width, height);
+			VkOffset2D transformedOffset = transformToOffset(VkOffset2D.calloc(stack), x, y, width, height);
+
             VkViewport.Buffer viewport = VkViewport.malloc(1, stack);
+
+			x = transformedOffset.x();
+			y = transformedOffset.y();
+			width = transformedExtent.width();
+			height = transformedExtent.height();
+
             viewport.x(x);
             viewport.y(height + y);
             viewport.width(width);
@@ -591,7 +601,7 @@ public class Renderer {
 
             VkRect2D.Buffer scissor = VkRect2D.malloc(1, stack);
             scissor.offset().set(0, 0);
-            scissor.extent().set(width, Math.abs(height));
+            scissor.extent(transformedExtent);
 
             vkCmdSetViewport(INSTANCE.currentCmdBuffer, 0, viewport);
             vkCmdSetScissor(INSTANCE.currentCmdBuffer, 0, scissor);
@@ -623,8 +633,8 @@ public class Renderer {
             int framebufferHeight = INSTANCE.boundFramebuffer.getHeight();
 
             VkRect2D.Buffer scissor = VkRect2D.malloc(1, stack);
-            scissor.offset().set(x, framebufferHeight - (y + height));
-            scissor.extent().set(width, height);
+			scissor.offset(transformToOffset(VkOffset2D.malloc(stack), x, framebufferHeight - (y + height), width, height));
+			scissor.extent(transformToExtent(VkExtent2D.malloc(stack), width, height));
 
             vkCmdSetScissor(INSTANCE.currentCmdBuffer, 0, scissor);
         }
@@ -665,6 +675,63 @@ public class Renderer {
     public static void popPushDebugSection(String s) {
         popDebugSection();
         pushDebugSection(s);
+    }
+
+	/**
+     * Transform the X/Y coordinates from Minecraft coordinate space to Vulkan coordinate space
+     * and write them to VkOffset2D
+     * @param offset2D the offset to which the coordinates should be written
+     * @param x the X coordinate
+     * @param y the Y coordinate
+     * @param w the viewport/scissor operation width
+     * @param h the viewport/scissor operation height
+     * @return same offset2D with transformations applied as necessary
+     */
+    private static VkOffset2D transformToOffset(VkOffset2D offset2D, int x, int y, int w, int h) {
+        int pretransformFlags = Vulkan.getPretransformFlags();
+        if(pretransformFlags == 0) {
+            offset2D.set(x, y);
+            return offset2D;
+        }
+        Framebuffer boundFramebuffer = Renderer.getInstance().boundFramebuffer;
+        int framebufferWidth = boundFramebuffer.getWidth();
+        int framebufferHeight = boundFramebuffer.getHeight();
+        switch (pretransformFlags) {
+            case VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR -> {
+                offset2D.x(framebufferWidth - h - y);
+                offset2D.y(x);
+            }
+            case VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR -> {
+                offset2D.x(framebufferWidth - w - x);
+                offset2D.y(framebufferHeight - h - y);
+            }
+            case VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR -> {
+                offset2D.x(y);
+                offset2D.y(framebufferHeight - w - x);
+            }
+            default -> {
+                offset2D.x(x);
+                offset2D.y(y);
+            }
+        }
+        return offset2D;
+    }
+
+	/**
+     * Transform the width and height from Minecraft coordinate space to the Vulkan coordinate space
+     * and write them to VkExtent2D
+     * @param extent2D the extent to which the values should be written
+     * @param w the viewport/scissor operation width
+     * @param h the viewport/scissor operation height
+     * @return the same VkExtent2D with transformations applied as necessary
+     */
+    private static VkExtent2D transformToExtent(VkExtent2D extent2D, int w, int h) {
+        int pretransformFlags = Vulkan.getPretransformFlags();
+        if(pretransformFlags == VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR ||
+                pretransformFlags == VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR) {
+            return extent2D.set(h, w);
+        }
+        return extent2D.set(w, h);
     }
 
     public static int getFramesNum() { return INSTANCE.framesNum; }
