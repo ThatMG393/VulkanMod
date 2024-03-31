@@ -44,6 +44,10 @@ public abstract class RenderSystemMixin {
     public static void assertOnGameThreadOrInit() {
     }
 
+    @Shadow
+    public static void pollEvents() {
+    }
+
     @Shadow @Final private static float[] shaderFogColor;
 
     @Shadow private static @Nullable Thread renderThread;
@@ -164,9 +168,10 @@ public abstract class RenderSystemMixin {
      */
     @Overwrite(remap = false)
     public static void flipFrame(long window) {
-        org.lwjgl.glfw.GLFW.glfwPollEvents();
+        pollEvents();
         RenderSystem.replayQueue();
         Tesselator.getInstance().getBuilder().clear();
+        pollEvents();
     }
 
     /**
