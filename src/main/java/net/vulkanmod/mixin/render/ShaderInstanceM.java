@@ -70,10 +70,11 @@ public class ShaderInstanceM implements ShaderMixed {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void create(ResourceProvider resourceProvider, String name, VertexFormat format, CallbackInfo ci) {
-
         try {
             if(Pipeline.class.getResourceAsStream(String.format("/assets/vulkanmod/shaders/minecraft/core/%s/%s.json", name, name)) == null) {
-                createLegacyShader(resourceProvider, new ResourceLocation("shaders/core/" + name + ".json"), format);
+                // fix shader npe creating from FabricShaderProgram (path exception), close issue #370
+                ResourceLocation res = ResourceLocation(name);
+                createLegacyShader(resourceProvider, new ResourceLocation(res.getNamespace(), "shaders/core/" + res.getPath() + ".json"), format);
                 return;
             }
 
@@ -81,6 +82,7 @@ public class ShaderInstanceM implements ShaderMixed {
             Pipeline.Builder pipelineBuilder = new Pipeline.Builder(format, path);
             pipelineBuilder.parseBindingsJSON();
             pipelineBuilder.compileShaders();
+            
             this.pipeline = pipelineBuilder.createGraphicsPipeline();
         } catch (Exception e) {
             System.out.printf("Error on shader %s creation\n", name);
