@@ -101,17 +101,13 @@ public class SPIRVUtils {
 
         time += (System.nanoTime() - startTime) / 1000000.0f;
 
-        return new SPIRV(result, shaderc_result_get_bytes(result));
+        return new SPIRV(result, shaderc_result_get_length(result));
     }
 
     private static SPIRV readFromStream(InputStream inputStream) {
         try {
-            byte[] bytes = inputStream.readAllBytes();
-            ByteBuffer buffer = MemoryUtil.memAlloc(bytes.length);
-            buffer.put(bytes);
-            buffer.position(0);
-
-            return new SPIRV(MemoryUtil.memAddress(buffer), buffer);
+            byte[] bytes = inputStream.readAllBytes(); 
+            return new SPIRV(MemoryUtil.memAddress(buffer), bytes.length);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -173,24 +169,14 @@ public class SPIRVUtils {
         }
     }
 
-    public static final class SPIRV implements NativeResource {
-
-        private final long handle;
-        private ByteBuffer bytecode;
-
-        public SPIRV(long handle, ByteBuffer bytecode) {
-            this.handle = handle;
-            this.bytecode = bytecode;
-        }
-
+    public record SPIRV(long handle, long size_t) implements NativeResource {
         public ByteBuffer bytecode() {
-            return bytecode;
+            return shaderc_result_get_bytes(handle, size_t);
         }
 
         @Override
         public void free() {
-//            shaderc_result_release(handle);
-            bytecode = null; // Help the GC
+			shaderc_result_release(handle);
         }
     }
 
