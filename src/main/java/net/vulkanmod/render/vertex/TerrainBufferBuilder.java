@@ -451,8 +451,8 @@ public class TerrainBufferBuilder {
 
             MemoryUtil.memPutInt(ptr + 8, color);
 
-            MemoryUtil.memPutShort(ptr + 12, (short) (u * UV_CONV));
-            MemoryUtil.memPutShort(ptr + 14, (short) (v * UV_CONV));
+            MemoryUtil.memPutShort(ptr + 12, (short) (Math.min(0.99999997F, u) * UV_CONV));
+            MemoryUtil.memPutShort(ptr + 14, (short) (Math.min(0.99999997F, v) * UV_CONV));
 
         }
 
