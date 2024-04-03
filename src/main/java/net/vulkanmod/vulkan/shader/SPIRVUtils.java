@@ -106,7 +106,11 @@ public class SPIRVUtils {
 
     private static SPIRV readFromStream(InputStream inputStream) {
         try {
-            byte[] bytes = inputStream.readAllBytes(); 
+            byte[] bytes = inputStream.readAllBytes();
+			ByteBuffer buffer = MemoryUtil.memAlloc(bytes.length);
+			buffer.put(bytes);
+			buffer.position(0);
+
             return new SPIRV(MemoryUtil.memAddress(buffer), bytes.length);
         } catch (Exception e) {
             e.printStackTrace();
