@@ -119,15 +119,8 @@ public class ChunkArea {
     }
 
     public DrawBuffers getDrawBuffers() {
-        if(!this.drawBuffers.isAllocated())
-            drawBuffers.allocateBuffers();
-
         return this.drawBuffers;
     }
-
-//    private void allocateDrawBuffers() {
-//        this.drawBuffers.allocateBuffers();
-//    }
 
     public void resetQueue() {
         this.sectionQueue.forEach((terrainRenderType, drawParameters) -> drawParameters.clear());

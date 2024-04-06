@@ -386,6 +386,8 @@ public class RenderSection {
     }
 
     private void resetDrawParameters() {
+		if (chunkArea == null) return;
+
         drawParametersArray.forEach((key, value) -> value.reset(this.chunkArea, key));
         drawParametersArray.clear();
     }
