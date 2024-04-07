@@ -81,6 +81,7 @@ public abstract class GameRendererMixin {
     @Shadow private @Nullable static ShaderInstance rendertypeEndGatewayShader;
     @Shadow private @Nullable static ShaderInstance rendertypeLinesShader;
     @Shadow private @Nullable static ShaderInstance rendertypeCrumblingShader;
+    @Shadow private static @Nullable ShaderInstance rendertypeBreezeWindShader;
 
     @Shadow private static @Nullable ShaderInstance rendertypeTextBackgroundShader;
     @Shadow private static @Nullable ShaderInstance rendertypeTextBackgroundSeeThroughShader;
@@ -99,50 +100,22 @@ public abstract class GameRendererMixin {
 
     @Shadow public abstract float getRenderDistance();
 
-    @Shadow private static @Nullable ShaderInstance rendertypeBreezeWindShader;
-
     @Inject(method = "reloadShaders", at = @At("HEAD"), cancellable = true)
     public void reloadShaders(ResourceProvider provider, CallbackInfo ci) {
         RenderSystem.assertOnRenderThread();
-//        List<Program> list = Lists.newArrayList();
-//        list.addAll(Program.Type.FRAGMENT.getPrograms().values());
-//        list.addAll(Program.Type.VERTEX.getPrograms().values());
-//        list.forEach(Program::close);
         List<Pair<ShaderInstance, Consumer<ShaderInstance>>> list1 = Lists.newArrayListWithCapacity(this.shaders.size());
 
         try {
-            list1.add(Pair.of(new ShaderInstance(provider, "particle", DefaultVertexFormat.PARTICLE), (shaderInstance) -> {
-                particleShader = shaderInstance;
-            }));
-            list1.add(Pair.of(new ShaderInstance(provider, "position", DefaultVertexFormat.POSITION), (shaderInstance) -> {
-                positionShader = shaderInstance;
-            }));
+            list1.add(Pair.of(new ShaderInstance(provider, "particle", DefaultVertexFormat.PARTICLE), shaderInstance -> particleShader = shaderInstance));
+            list1.add(Pair.of(new ShaderInstance(provider, "position", DefaultVertexFormat.POSITION), shaderInstance -> positionShader = shaderInstance));
 
-            ShaderInstance positionColor = new ShaderInstance(provider, "position_color", DefaultVertexFormat.POSITION_COLOR);
-            list1.add(Pair.of(positionColor, (shaderInstance) -> positionColorShader = shaderInstance));
-//            list1.add(Pair.of(new ShaderInstance(provider, "position_color_lightmap", DefaultVertexFormat.POSITION_COLOR_LIGHTMAP), (shaderInstance) -> {
-//               positionColorLightmapShader = shaderInstance;
-//            }));
-            final ShaderInstance positionColorTex = new ShaderInstance(provider, "position_color_tex", DefaultVertexFormat.POSITION_COLOR_TEX);
-            list1.add(Pair.of(positionColorTex, (shaderInstance) -> {
-                positionColorTexShader = shaderInstance;
-            }));
-//            list1.add(Pair.of(new ShaderInstance(provider, "position_color_tex_lightmap", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), (shaderInstance) -> {
-//               positionColorTexLightmapShader = shaderInstance;
-//            }));
-            list1.add(Pair.of(new ShaderInstance(provider, "position_tex", DefaultVertexFormat.POSITION_TEX), (shaderInstance) -> {
-                positionTexShader = shaderInstance;
-            }));
-            list1.add(Pair.of(new ShaderInstance(provider, "position_tex_color", DefaultVertexFormat.POSITION_TEX_COLOR), (shaderInstance) -> {
-                positionTexColorShader = shaderInstance;
-            }));
-            list1.add(Pair.of(new ShaderInstance(provider, "position_tex_color_normal", DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL), (shaderInstance) -> {
-                positionTexColorNormalShader = shaderInstance;
-            }));
-//            list1.add(Pair.of(new ShaderInstance(provider, "position_tex_lightmap_color", DefaultVertexFormat.POSITION_TEX_LIGHTMAP_COLOR), (shaderInstance) -> {
-//               positionTexLightmapColorShader = shaderInstance;
-//            }));
-            //TODO: only used for Falling Blocks,
+            list1.add(Pair.of(new ShaderInstance(provider, "position_color", DefaultVertexFormat.POSITION_COLOR), shaderInstance -> positionColorShader = shaderInstance));
+            list1.add(Pair.of(new ShaderInstance(provider, "position_color_tex", DefaultVertexFormat.POSITION_COLOR_TEX), shaderInstance -> positionColorTexShader = shaderInstance));
+            list1.add(Pair.of(new ShaderInstance(provider, "position_tex", DefaultVertexFormat.POSITION_TEX), shaderInstance -> positionTexShader = shaderInstance));
+            list1.add(Pair.of(new ShaderInstance(provider, "position_tex_color", DefaultVertexFormat.POSITION_TEX_COLOR), shaderInstance -> positionTexColorShader = shaderInstance));
+            list1.add(Pair.of(new ShaderInstance(provider, "position_tex_color_normal", DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL), shaderInstance -> positionTexColorNormalShader = shaderInstance));
+
+			// TODO: only used for Falling Blocks,
             final ShaderInstance rendertypeSolid = new ShaderInstance(provider, "rendertype_solid", DefaultVertexFormat.BLOCK);
             list1.add(Pair.of(rendertypeSolid, (shaderInstance) -> {
                 rendertypeSolidShader = shaderInstance;
@@ -306,9 +279,7 @@ public abstract class GameRendererMixin {
             list1.add(Pair.of(positionColor, (shaderInstance) -> {
                 rendertypeGuiGhostRecipeOverlayShader = shaderInstance;
             }));
-            list1.add(Pair.of(energySwirl, (shaderInstance) -> {
-                rendertypeBreezeWindShader = shaderInstance;
-            }));
+            list1.add(Pair.of(new ShaderInstance(provider, "rendertype_energy_swirl", DefaultVertexFormat.NEW_ENTITY), shaderInstance -> rendertypeBreezeWindShader = shaderInstance));
         } catch (IOException ioexception) {
             list1.forEach((pair) -> {
                 pair.getFirst().close();
