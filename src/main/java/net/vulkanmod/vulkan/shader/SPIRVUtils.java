@@ -1,5 +1,8 @@
 package net.vulkanmod.vulkan.shader;
 
+import net.vulkanmod.Initializer;
+import net.vulkanmod.vulkan.VRenderSystem;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
