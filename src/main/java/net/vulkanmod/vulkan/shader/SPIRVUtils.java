@@ -184,4 +184,21 @@ public class SPIRVUtils {
         }
     }
 
+	public enum SpecConstants {
+		USE_FOG(Initializer.CONFIG.renderFog ? 1 : 0),
+		ALPHA_CUTOUT(Float.floatToRawIntBits(VRenderSystem.alphaCutout)),
+		MAX_OFFSET_COUNT(512),
+		COMPUTE_SIZE_X(32),
+		COMPUTE_SIZE_Y(32);
+
+		private final int value;
+
+		public SpecConstants(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return value;
+		}
+	}
 }

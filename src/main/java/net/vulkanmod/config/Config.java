@@ -26,6 +26,7 @@ public class Config {
     public int device = -1;
     public boolean animations = false;
     public boolean renderSky = false;
+    public boolean renderFog = false;
 
     public int ambientOcclusion = 1;
 
