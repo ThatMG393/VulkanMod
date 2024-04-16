@@ -54,13 +54,12 @@ public class GlRenderbuffer {
             return;
 
         bound.internalFormat = internalFormat;
-
         bound.allocateIfNeeded(width, height, internalFormat);
     }
 
     public static void texParameteri(int target, int pName, int param) {
-        if(target != GL11.GL_TEXTURE_2D)
-            throw new UnsupportedOperationException();
+        if(!isTargetValid(target))
+            throw new UnsupportedOperationException("recieved a target that is not a GL_TEXTURE_2D");
 
         switch (pName) {
             case GL30.GL_TEXTURE_MAX_LEVEL -> bound.setMaxLevel(param);
@@ -78,7 +77,7 @@ public class GlRenderbuffer {
     }
 
     public static int getTexLevelParameter(int target, int level, int pName) {
-        if(bound == null || target == GL11.GL_TEXTURE_2D)
+        if(!isTargetValid(target))
             return -1;
 
         return switch (pName) {
@@ -91,8 +90,8 @@ public class GlRenderbuffer {
     }
 
     public static void generateMipmap(int target) {
-        if(target != GL11.GL_TEXTURE_2D)
-            throw new UnsupportedOperationException();
+        if(!isTargetValid(target))
+			throw new UnsupportedOperationException("recieved a target that is not a GL_TEXTURE_2D");
 
         bound.generateMipmaps();
     }
@@ -106,6 +105,10 @@ public class GlRenderbuffer {
     public static GlRenderbuffer getBound() {
         return bound;
     }
+
+	private static boolean isTargetValid(int target) {
+		return bound != null || target == GL11.GL_TEXTURE_2D
+	}
 
     final int id;
     VulkanImage vulkanImage;
