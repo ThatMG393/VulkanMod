@@ -177,28 +177,21 @@ public class WorldRenderer {
         float d_xRot = Math.abs(camera.getXRot() - this.lastCamRotX);
         float d_yRot = Math.abs(camera.getYRot() - this.lastCamRotY);
         cameraMoved |= d_xRot > 2.0f || d_yRot > 2.0f;
+        cameraMoved |= Math.abs(cameraY - this.lastCameraY) > 2.0f; 
 
-        cameraMoved |= cameraX != this.lastCameraX || cameraY != this.lastCameraY || cameraZ != this.lastCameraZ;
         this.graphNeedsUpdate |= cameraMoved;
+        if (!isCapturedFrustum && this.graphNeedsUpdate) {
+			this.graphNeedsUpdate = false;
+			this.lastCameraX = cameraX;
+			this.lastCameraY = cameraY;
+			this.lastCameraZ = cameraZ;
+			this.lastCamRotX = camera.getXRot();
+			this.lastCamRotY = camera.getYRot();
 
-        if (!isCapturedFrustum) {
-            //Debug
-//            this.graphNeedsUpdate = true;
-
-            if (this.graphNeedsUpdate) {
-                this.graphNeedsUpdate = false;
-                this.lastCameraX = cameraX;
-                this.lastCameraY = cameraY;
-                this.lastCameraZ = cameraZ;
-                this.lastCamRotX = camera.getXRot();
-                this.lastCamRotY = camera.getYRot();
-
-                this.sectionGraph.update(camera, frustum, spectator);
-            }
+			this.sectionGraph.update(camera, frustum, spectator);	
         }
 
         this.indirectBuffers[Renderer.getCurrentFrame()].reset();
-//        this.uniformBuffers.reset();
 
         this.minecraft.getProfiler().pop();
         profiler.pop();
