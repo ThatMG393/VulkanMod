@@ -107,7 +107,7 @@ public class GlRenderbuffer {
     }
 
 	private static boolean isTargetValid(int target) {
-		return bound != null || target == GL11.GL_TEXTURE_2D
+		return bound != null || target == GL11.GL_TEXTURE_2D;
 	}
 
     final int id;
