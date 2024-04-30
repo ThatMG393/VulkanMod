@@ -469,5 +469,13 @@ public class Vulkan {
     public static Device getDevice() {
         return DeviceManager.device;
     }
+
+	public static Matrix4f getPretransformMatrix() {
+		return swapChain.getPretransformMatrix();
+	}
+
+	public static int getPretransformFlags() {
+		return swapChain.getPretransformFlags();
+	}
 }
 
